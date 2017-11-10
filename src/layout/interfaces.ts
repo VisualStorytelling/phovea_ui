@@ -47,6 +47,11 @@ export interface ILayoutContainer extends IEventHandler, IHasUniqueId {
    * can the header be hidden if needed
    */
   readonly hideAbleHeader: boolean;
+
+  /**
+   * whether the view should be automatically wrapped in a tabbing environment upon split drop
+   */
+  readonly autoWrapOnDrop: boolean;
   /**
    * name of this container
    */
@@ -78,6 +83,7 @@ export interface ILayoutContainer extends IEventHandler, IHasUniqueId {
    * @return {ILayoutContainer}
    */
   find(id: number|((container: ILayoutContainer)=>boolean)): ILayoutContainer | null;
+  findAll(predicate: (container: ILayoutContainer)=>boolean): ILayoutContainer[];
 }
 
 /**
@@ -223,7 +229,7 @@ export interface IView {
   /**
    * notification that this view has been resized
    */
-  resized(): void;
+  resized?(): void;
 
   /**
    * determines the unique reference of this view for dumping

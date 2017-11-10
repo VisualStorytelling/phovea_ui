@@ -61,7 +61,11 @@ export default class SplitLayoutContainer extends ASequentialLayoutContainer<ISp
   private enableDragging(index: number) {
     const bak = this._ratios.slice();
     const mouseMove = (evt: MouseEvent) => {
-      const ratio = this.options.orientation === EOrientation.HORIZONTAL ? evt.x / this.node.offsetWidth : evt.y / this.node.offsetHeight;
+      const n = this.node;
+      const bb = n.getBoundingClientRect();
+      const x = evt.clientX - bb.left - n.clientLeft + n.scrollLeft;
+      const y = evt.clientY - bb.top - n.clientTop + n.scrollTop;
+      const ratio = this.options.orientation === EOrientation.HORIZONTAL ? x / n.offsetWidth : y / n.offsetHeight;
       this.setRatioImpl(index, ratio);
       //no events
       evt.stopPropagation();
@@ -71,6 +75,7 @@ export default class SplitLayoutContainer extends ASequentialLayoutContainer<ISp
       if (evt.target !== evt.currentTarget && evt.type === 'mouseleave') {
         return;
       }
+      this.node.classList.remove('slider-dragging');
       this.node.removeEventListener('mousemove', mouseMove);
       this.node.removeEventListener('mouseup', disable);
       this.node.removeEventListener('mouseleave', disable);
@@ -80,6 +85,8 @@ export default class SplitLayoutContainer extends ASequentialLayoutContainer<ISp
        this.fire(withChanged(LayoutContainerEvents.EVENT_CHANGE_SPLIT_RATIOS), bak, act);
       }
     };
+
+    this.node.classList.add('slider-dragging');
     this.node.addEventListener('mousemove', mouseMove);
     this.node.addEventListener('mouseup', disable);
     this.node.addEventListener('mouseleave', disable);

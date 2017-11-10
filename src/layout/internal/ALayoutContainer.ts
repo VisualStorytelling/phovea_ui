@@ -1,12 +1,12 @@
 import {EventHandler} from 'phovea_core/src/event';
-import {ILayoutDump, LayoutContainerEvents} from '../interfaces';
+import {ILayoutDump, LayoutContainerEvents, ILayoutContainer} from '../interfaces';
 import {dragAble, uniqueId} from 'phovea_core/src';
 import {AParentLayoutContainer} from './AParentLayoutContainer';
-import {ILayoutContainer} from '../';
 
 export interface ILayoutContainerOption {
   name: string;
   readonly fixed: boolean;
+  readonly autoWrap: boolean;
 }
 
 export function withChanged(event: string) {
@@ -29,7 +29,7 @@ export abstract class ALayoutContainer<T extends ILayoutContainerOption> extends
     this.options = Object.assign(this.defaultOptions(), options);
     this.header = document.createElement('header');
     this.header.innerHTML = `
-        <button type="button" class="close${this.options.fixed ? ' hidden' : ''}" aria-label="Close"><span aria-hidden="true">×</span></button>
+        <button type="button" class="close${this.options.fixed ? ' hidden' : ''}" aria-label="Close"><span>×</span></button>
         <span>${this.name}</span>`;
 
     //remove
@@ -67,11 +67,16 @@ export abstract class ALayoutContainer<T extends ILayoutContainerOption> extends
     return false;
   }
 
+  get autoWrapOnDrop() {
+    return this.options.autoWrap;
+  }
+
   protected defaultOptions(): T {
     return <any>{
       name: 'View',
       fixed: false,
-      hideAbleHeader: false
+      hideAbleHeader: false,
+      autoWrap: false
     };
   }
 
@@ -99,27 +104,33 @@ export abstract class ALayoutContainer<T extends ILayoutContainerOption> extends
     return {
       type: '',
       name: this.name,
-      fixed: this.options.fixed
+      fixed: this.options.fixed,
+      autoWrap: this.options.autoWrap
     };
   }
 
   static restoreOptions(dump: ILayoutDump): Partial<ILayoutContainerOption> {
     return {
       name: dump.name,
-      fixed: dump.fixed
+      fixed: dump.fixed,
+      autoWrap: dump.autoWrap === true
     };
   }
 
   static deriveOptions(node: HTMLElement): Partial<ILayoutContainerOption> {
     return {
       name: node.dataset.name || 'View',
-      fixed: node.dataset.fixed !== undefined
+      fixed: node.dataset.fixed !== undefined,
+      autoWrap: node.dataset.autoWrap !== undefined
     };
   }
 
   find(id: number|((container: ILayoutContainer)=>boolean)) {
     return (typeof id === 'number' && this.id === id) || (typeof id === 'function' && id(<any>this)) ? this : null;
   }
+  findAll(predicate: (container: ILayoutContainer)=>boolean): ILayoutContainer[] {
+    return predicate(<any>this) ? [<any>this]: [];
+  };
 }
 
 export default ALayoutContainer;
